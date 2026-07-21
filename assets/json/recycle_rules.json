@@ -1,0 +1,312 @@
+[
+  {
+    "label": "plastic bottle",
+    "material": "Plástico (PET)",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Blanco",
+    "description": "Botella plástica de PET (Polietileno Tereftalato). Material transparente y resistente, comúnmente usado para bebidas.",
+    "recommendation": "Enjuaga antes de reciclar. Retira la tapa y la etiqueta si es posible. Deposita en el contenedor blanco.",
+    "aliases": ["water bottle", "soda bottle", "beverage bottle"]
+  },
+  {
+    "label": "glass bottle",
+    "material": "Vidrio",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Blanco",
+    "description": "Botella de vidrio. Material 100% reciclable sin pérdida de calidad.",
+    "recommendation": "Enjuaga antes de reciclar. No mezcles vidrio de diferentes colores. Deposita en el contenedor blanco. Ten cuidado al manejar vidrio roto.",
+    "aliases": ["beer bottle", "wine bottle", "jar"]
+  },
+  {
+    "label": "pizza box",
+    "material": "Cartón contaminado",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Caja de pizza contaminada con grasa y residuos de comida. No puede ser reciclada debido a la contaminación por aceite.",
+    "recommendation": "Retira restos de comida y deposítalo en el contenedor negro. Si está limpio, puedes compostarlo.",
+    "aliases": ["cardboard box"]
+  },
+  {
+    "label": "banana peel",
+    "material": "Orgánico",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Verde",
+    "description": "Cáscara de banano. Es un residuo orgánico compostable.",
+    "recommendation": "Deposita en el contenedor verde para compostaje. Puedes usarlo para hacer compost casero.",
+    "aliases": ["fruit peel", "orange peel"]
+  },
+  {
+    "label": "can",
+    "material": "Metal (Aluminio)",
+    "recyclable": true,
+    "reusable": false,
+    "container_color": "Blanco",
+    "description": "Lata de aluminio. Material altamente reciclable que puede ser reprocesado infinitamente.",
+    "recommendation": "Enjuaga antes de reciclar. Aplasta la lata para ahorrar espacio. Deposita en el contenedor blanco.",
+    "aliases": ["aluminum can", "tin can", "soda can", "beer can"]
+  },
+  {
+    "label": "cardboard",
+    "material": "Cartón",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Azul",
+    "description": "Cartón limpio sin contaminar. Material fibroso reciclable.",
+    "recommendation": "Aplana el cartón antes de depositarlo. Deposita en el contenedor azul. No incluyas cartón contaminado con grasa.",
+    "aliases": ["paper box", "shipping box"]
+  },
+  {
+    "label": "newspaper",
+    "material": "Papel",
+    "recyclable": true,
+    "reusable": false,
+    "container_color": "Azul",
+    "description": "Periódico de papel prensa. Material reciclable de alta calidad.",
+    "recommendation": "Mantén el papel seco y limpio. Deposita en el contenedor azul.",
+    "aliases": ["paper", "magazine"]
+  },
+  {
+    "label": "plastic bag",
+    "material": "Plástico (LDPE)",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Amarillo",
+    "description": "Bolsa plástica de polietileno de baja densidad. Reutilizable y reciclable en puntos de acopio especiales.",
+    "recommendation": "Reutiliza siempre que puedas. Acumula varias bolsas y llévalas a un punto de acopio. No las deposits en contenedores comunes.",
+    "aliases": ["shopping bag", "plastic wrap"]
+  },
+  {
+    "label": "styrofoam",
+    "material": "Poliestireno expandido",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Poliestireno expandido (ICopor). Material muy difícil de reciclar y altamente contaminante.",
+    "recommendation": "Evita su uso. Deposita en el contenedor negro. Considera alternativas reutilizables.",
+    "aliases": ["foam", "polystyrene", "styrofoam cup"]
+  },
+  {
+    "label": "battery",
+    "material": "Electrónico (peligroso)",
+    "recyclable": true,
+    "reusable": false,
+    "container_color": "Rojo",
+    "description": "Batería o pila. Contiene metales pesados y sustancias tóxicas. Es un residuo peligroso.",
+    "recommendation": "NUNCA deposits en contenedores comunes. Llévala a un punto de acopio especializado. Muchos supermercados tienen contenedores para pilas.",
+    "aliases": ["cell battery", "power battery"]
+  },
+  {
+    "label": "cell phone",
+    "material": "Electrónico",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Rojo",
+    "description": "Teléfono celular o dispositivo electrónico. Contiene metales valiosos y materiales peligrosos.",
+    "recommendation": "Si funciona, dona o vende. Si no, llévalo a un punto de acopio de residuos electrónicos. NUNCA lo deposits en contenedores comunes.",
+    "aliases": ["mobile phone", "smartphone"]
+  },
+  {
+    "label": "shoe",
+    "material": "Textil/Mixto",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Calzado de materiales mixtos (cuero, tela, goma, plástico). Difícilmente reciclable por sus componentes mixtos.",
+    "recommendation": "Si está en buen estado, dona. Busca programas de reciclaje de calzado en tu ciudad.",
+    "aliases": ["sneaker", "boot", "sandal"]
+  },
+  {
+    "label": "t-shirt",
+    "material": "Textil",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Camiseta de tela. Material textil reutilizable.",
+    "recommendation": "Reutiliza como trapo de limpieza, dona, o llévala a un punto de acopio textil. No deposits en contenedores comunes.",
+    "aliases": ["shirt", "clothing"]
+  },
+  {
+    "label": "coffee cup",
+    "material": "Cartón contaminado/Plástico",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Vaso de café desechable. Comúnmente recubierto de plástico o cera, lo que impide su reciclaje.",
+    "recommendation": "Deposita en el contenedor negro. Usa vasos reutilizables para reducir residuos.",
+    "aliases": ["cup", "paper cup"]
+  },
+  {
+    "label": "toy",
+    "material": "Plástico Mixto",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Juguete de plástico mixto. Generalmente compuesto por múltiples tipos de plástico y otros materiales.",
+    "recommendation": "Si está en buen estado, dona o regala. Si no es reutilizable, deposítalo en el contenedor negro.",
+    "aliases": ["plastic toy"]
+  },
+  {
+    "label": "toothbrush",
+    "material": "Plástico (Mixto)",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Cepillo de dientes de plástico. Compuesto por múltiples materiales difíciles de separar.",
+    "recommendation": "Deposita en el contenedor negro. Existen marcas que ofrecen cepillos de bambú compostables.",
+    "aliases": ["dental brush"]
+  },
+  {
+    "label": "straw",
+    "material": "Plástico",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Pajita o popote de plástico. Artículo de un solo uso altamente contaminante.",
+    "recommendation": "Evita su uso. Deposita en el contenedor negro. Considera usar pajitas de acero inoxidable o bambú.",
+    "aliases": ["plastic straw", "drinking straw"]
+  },
+  {
+    "label": "pen",
+    "material": "Plástico Mixto",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Bolígrafo de plástico con componentes metálicos y de tinta.",
+    "recommendation": "Deposita en el contenedor negro. Algunas marcas tienen programas de recolección de bolígrafos usados.",
+    "aliases": ["ballpoint pen", "marker"]
+  },
+  {
+    "label": "fork",
+    "material": "Plástico",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Negro",
+    "description": "Tenedor desechable de plástico. Artículo de un solo uso.",
+    "recommendation": "Deposita en el contenedor negro. Opta por cubiertos reutilizables de acero inoxidable.",
+    "aliases": ["plastic fork", "spoon", "knife"]
+  },
+  {
+    "label": "book",
+    "material": "Papel",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Azul",
+    "description": "Libro de papel. Material reciclable y reutilizable.",
+    "recommendation": "Dona libros en buen estado. Deposita libros en mal estado en el contenedor azul. Retira la portada plastificada si es posible.",
+    "aliases": ["paperback", "hardcover book"]
+  },
+  {
+    "label": "glass jar",
+    "material": "Vidrio",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Blanco",
+    "description": "Frasco o frasco de vidrio. Material 100% reciclable.",
+    "recommendation": "Enjuaga antes de reciclar. Puedes reutilizarlo para almacenamiento. Deposita en el contenedor blanco.",
+    "aliases": ["jar", "mason jar"]
+  },
+  {
+    "label": "clothing",
+    "material": "Textil",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Prenda de vestir de tela. Material textil reutilizable.",
+    "recommendation": "Reutiliza, dona o lleva a un punto de acopio textil. No deposits en contenedores comunes.",
+    "aliases": ["clothes", "garment", "pants", "dress"]
+  },
+  {
+    "label": "chair",
+    "material": "Madera/Plástico Mixto",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Silla de materiales mixtos (madera, plástico, metal).",
+    "recommendation": "Si está en buen estado, dona o vende. Si no es reutilizable, consulta con tu autoridad ambiental sobre disposición de muebles.",
+    "aliases": ["furniture", "stool"]
+  },
+  {
+    "label": "keyboard",
+    "material": "Electrónico",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Rojo",
+    "description": "Teclado de computadora. Dispositivo electrónico con componentes reciclables.",
+    "recommendation": "Si funciona, dona o vende. Si no, llévalo a un punto de acopio de residuos electrónicos.",
+    "aliases": ["computer keyboard"]
+  },
+  {
+    "label": "banana",
+    "material": "Orgánico",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Verde",
+    "description": "Banano fresco. Residuo orgánico compostable.",
+    "recommendation": "Deposita restos orgánicos en el contenedor verde para compostaje.",
+    "aliases": ["fruit"]
+  },
+  {
+    "label": "broccoli",
+    "material": "Orgánico",
+    "recyclable": false,
+    "reusable": false,
+    "container_color": "Verde",
+    "description": "Brócoli fresco. Residuo orgánico compostable.",
+    "recommendation": "Deposita restos orgánicos en el contenedor verde para compostaje.",
+    "aliases": ["vegetable"]
+  },
+  {
+    "label": "table",
+    "material": "Madera",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Mesa de madera. Mueble reutilizable.",
+    "recommendation": "Si está en buen estado, dona o vende. Consulta con tu autoridad ambiental sobre disposición de muebles grandes.",
+    "aliases": ["furniture", "desk"]
+  },
+  {
+    "label": "laptop",
+    "material": "Electrónico",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Rojo",
+    "description": "Computador portátil. Dispositivo electrónico con componentes valiosos y peligrosos.",
+    "recommendation": "Borra tus datos personales antes de desechar. Si funciona, dona o vende. Si no, llévala a un punto de acopio de residuos electrónicos.",
+    "aliases": ["computer", "notebook computer"]
+  },
+  {
+    "label": "watch",
+    "material": "Electrónico/Mixto",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Rojo",
+    "description": "Reloj (analógico o digital). Dispositivo de materiales mixtos.",
+    "recommendation": "Si funciona, reutiliza o dona. Si es un smartwatch, llévalo a un punto de acopio de residuos electrónicos.",
+    "aliases": ["wristwatch", "smartwatch"]
+  },
+  {
+    "label": "wallet",
+    "material": "Textil/Cuero",
+    "recyclable": false,
+    "reusable": true,
+    "container_color": "Negro",
+    "description": "Billetera de material textil o cuero. Artículo reutilizable.",
+    "recommendation": "Reutiliza o dona si está en buen estado.",
+    "aliases": ["purse"]
+  },
+  {
+    "label": "headphones",
+    "material": "Electrónico",
+    "recyclable": true,
+    "reusable": true,
+    "container_color": "Rojo",
+    "description": "Audífonos. Dispositivo electrónico con componentes reciclables.",
+    "recommendation": "Si funcionan, reutiliza o dona. Si no, llévalos a un punto de acopio de residuos electrónicos.",
+    "aliases": ["earbuds", "earphones"]
+  }
+]
