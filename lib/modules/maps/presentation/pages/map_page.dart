@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../domain/entities/recycle_point.dart';
 import '../viewmodels/map_viewmodel.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/city_selector.dart';
-import '../widgets/recycle_point_list.dart';
+import '../widgets/sidebar_points.dart';
 import '../widgets/recycle_point_card.dart';
 import '../widgets/map_search_bar.dart';
 
@@ -16,6 +17,9 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
+  bool _sidebarOpen = false;
+  int _selectionGeneration = 0;
+
   @override
   void initState() {
     super.initState();
@@ -24,131 +28,207 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
+  void _toggleSidebar() {
+    setState(() => _sidebarOpen = !_sidebarOpen);
+  }
+
+  void _onPointSelected(MapViewModel vm, RecyclePoint point) {
+    vm.selectPoint(point);
+    setState(() {
+      _selectionGeneration++;
+      _sidebarOpen = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Puntos de Reciclaje'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<MapViewModel>().refresh(),
-          ),
-        ],
-      ),
-      body: Consumer<MapViewModel>(
-        builder: (context, vm, _) {
-          return Column(
+      body: Stack(
+        children: [
+          Column(
             children: [
-              CitySelector(
-                selectedCity: vm.selectedCity,
-                selectedLocality: vm.selectedLocality,
-                availableLocalities: vm.availableLocalities,
-                onCityChanged: vm.selectCity,
-                onLocalityChanged: vm.selectLocality,
-              ),
-              MapSearchBar(
-                onSearch: vm.search,
-                onFilterChanged: vm.setTipoFilter,
-                currentFilter: vm.tipoFilter,
-              ),
+              _buildAppBar(),
+              _buildControls(),
               Expanded(
-                child: _buildBody(vm),
+                child: _buildMapArea(),
               ),
             ],
-          );
-        },
+          ),
+          _buildSidebar(),
+          _buildFloatingCard(),
+          _buildProgressIndicator(),
+          _buildErrorBanner(),
+        ],
       ),
     );
   }
 
-  Widget _buildBody(MapViewModel vm) {
-    if (vm.selectedCity == null) {
-      return const Center(
-        child: Column(
+  Widget _buildAppBar() {
+    final vm = context.read<MapViewModel>();
+    return AppBar(
+      title: const Text('Puntos de Reciclaje'),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          onPressed: () => vm.refresh(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildControls() {
+    return Consumer<MapViewModel>(
+      builder: (context, vm, _) {
+        return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.map_outlined, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Seleccione una ciudad',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+            CitySelector(
+              selectedCity: vm.selectedCity,
+              selectedLocality: vm.selectedLocality,
+              availableLocalities: vm.availableLocalities,
+              onCityChanged: vm.selectCity,
+              onLocalityChanged: vm.selectLocality,
             ),
-            SizedBox(height: 8),
-            Text(
-              'Use el selector superior para comenzar',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            MapSearchBar(
+              onSearch: vm.search,
+              onFilterChanged: vm.setTipoFilter,
+              currentFilter: vm.tipoFilter,
             ),
           ],
-        ),
-      );
-    }
+        );
+      },
+    );
+  }
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        MapWidget(
+  Widget _buildMapArea() {
+    return Consumer<MapViewModel>(
+      builder: (context, vm, _) {
+        if (vm.selectedCity == null) {
+          return _buildEmptyState();
+        }
+
+        return MapWidget(
           points: vm.filteredPoints,
           selectedPoint: vm.selectedPoint,
           currentLocation: vm.currentLocation,
           initialCenter: vm.getInitialCenter(),
-          onPointSelected: vm.selectPoint,
+          onPointSelected: (point) => _onPointSelected(vm, point),
           onMapTap: () => vm.clearSelection(),
-        ),
-        if (vm.state == MapState.loading)
-          const Positioned(
-            top: 8,
-            left: 0,
-            right: 0,
-            child: LinearProgressIndicator(),
+          selectionGeneration: _selectionGeneration,
+        );
+      },
+    );
+  }
+
+  Widget _buildSidebar() {
+    return Consumer<MapViewModel>(
+      builder: (context, vm, _) {
+        return SidebarPoints(
+          points: vm.filteredPoints,
+          onPointSelected: (point) => _onPointSelected(vm, point),
+          isVisible: _sidebarOpen,
+          onToggle: _toggleSidebar,
+        );
+      },
+    );
+  }
+
+  Widget _buildFloatingCard() {
+    return Consumer<MapViewModel>(
+      builder: (context, vm, _) {
+        if (vm.selectedPoint == null) return const SizedBox.shrink();
+
+        return Positioned(
+          left: 12,
+          right: 12,
+          bottom: 16,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.45,
+            ),
+            child: RecyclePointCard(
+              point: vm.selectedPoint!,
+              onClose: () => vm.clearSelection(),
+            ),
           ),
-        if (vm.errorMessage != null)
-          Positioned(
-            top: vm.state == MapState.loading ? 40 : 8,
-            left: 16,
-            right: 16,
-            child: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, color: Colors.orange),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        vm.errorMessage!,
-                        style: const TextStyle(fontSize: 13),
-                      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProgressIndicator() {
+    return Consumer<MapViewModel>(
+      builder: (context, vm, _) {
+        if (vm.state != MapState.loading) return const SizedBox.shrink();
+
+        return const Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: LinearProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Consumer<MapViewModel>(
+      builder: (context, vm, _) {
+        if (vm.errorMessage == null) return const SizedBox.shrink();
+
+        final topOffset = vm.state == MapState.loading ? 40.0 : 0.0;
+
+        return Positioned(
+          top: topOffset,
+          left: 16,
+          right: 16,
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      vm.errorMessage!,
+                      style: const TextStyle(fontSize: 13),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () => vm.clearError(),
-                    ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => vm.clearError(),
+                  ),
+                ],
               ),
             ),
           ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
-            ),
-            child: vm.selectedPoint != null
-                ? RecyclePointCard(point: vm.selectedPoint!)
-                : RecyclePointList(
-                    points: vm.filteredPoints,
-                    onPointSelected: vm.selectPoint,
-                  ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.map_outlined, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text(
+            'Seleccione una ciudad',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
-        ),
-      ],
+          SizedBox(height: 8),
+          Text(
+            'Use el selector superior para comenzar',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+        ],
+      ),
     );
   }
 }

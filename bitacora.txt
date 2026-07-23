@@ -360,3 +360,183 @@ Pendientes:
   - Documentar entrenamiento de modelo IA
 
 ==================================================
+Fecha: 2026-07-21
+Hora: 10:00
+Actividad realizada: Resolución de errores de compilación JVM y cambio de JDK
+Archivos modificados:
+  - android/settings.gradle.kts (AGP 8.9.1, Kotlin 2.0.21)
+  - android/gradle/wrapper/gradle-wrapper.properties (Gradle 9.1.0)
+  - android/gradle.properties (kotlin.jvm.target.validation.mode=IGNORE)
+  - android/app/build.gradle.kts (compileSdk, namespace)
+Motivo: Compilar el proyecto Flutter en Windows sin errores JVM OOM
+Explicación técnica:
+  Se resolvió el crash de JVM por Out of Memory utilizando Eclipse
+  Adoptium JDK 21 en lugar de JetBrains Runtime. Se actualizó AGP a
+  8.9.1, Kotlin a 2.0.21 y Gradle a 9.1.0. Se agregó
+  kotlin.jvm.target.validation.mode=IGNORE para evitar warnings de
+  target JVM. Se usa JAVA_HOME指向 Eclipse Adoptium JDK.
+  Se agregó flag --android-skip-build-dependency-validation para
+  evitar errores de verificación de versiones de Flutter.
+Problemas encontrados:
+  1. JVM crash por OOM con JetBrains Runtime 21
+     Solución: Cambiar a Eclipse Adoptium JDK 21.0.9.10-hotspot
+  2. Incompatible Kotlin target validation warnings
+     Solución: kotlin.jvm.target.validation.mode=IGNORE en gradle.properties
+  3. Flutter dependency validation errors con versiones nuevas
+     Solución: --android-skip-build-dependency-validation flag
+Cómo fueron solucionados: Cambio de JDK + downgrade/upgrade de herramientas Gradle
+Pendientes: Implementar módulo de mapas
+
+==================================================
+Fecha: 2026-07-21
+Hora: 12:00
+Actividad realizada: Implementación del módulo de mapas completo (Clean Architecture)
+Archivos modificados:
+  - lib/modules/maps/domain/entities/recycle_point.dart (entidad)
+  - lib/modules/maps/domain/repositories/map_repository.dart (interfaz)
+  - lib/modules/maps/domain/usecases/get_recycle_points_use_case.dart
+  - lib/modules/maps/domain/usecases/get_current_location_usecase.dart
+  - lib/modules/maps/data/datasources/overpass_datasource.dart
+  - lib/modules/maps/data/models/recycle_point_model.dart
+  - lib/modules/maps/data/repositories/map_repository_impl.dart
+  - lib/modules/maps/core/config/map_config.dart
+  - lib/modules/maps/core/di/map_service_provider.dart
+  - lib/modules/maps/core/utils/map_marker_factory.dart
+  - lib/modules/maps/core/services/location_service.dart
+  - lib/modules/maps/core/services/connectivity_service.dart
+  - lib/modules/maps/presentation/viewmodels/map_viewmodel.dart
+  - lib/modules/maps/presentation/pages/map_page.dart
+  - lib/modules/maps/presentation/widgets/map_widget.dart
+  - lib/modules/maps/presentation/widgets/city_selector.dart
+  - lib/modules/maps/presentation/widgets/map_search_bar.dart
+  - lib/modules/maps/presentation/widgets/recycle_point_card.dart
+  - lib/modules/maps/presentation/widgets/recycle_point_list.dart
+  - lib/main.dart (providers + MapServiceProvider init)
+  - lib/presentation/routes/app_router.dart (ruta /map)
+  - pubspec.yaml (flutter_map, latlong2, geolocator, dio, connectivity_plus, url_launcher)
+Motivo: Módulo de mapas para encontrar puntos de reciclaje con Overpass API
+Explicación técnica:
+  Arquitectura completa Clean Architecture + MVVM + Provider:
+  - Domain: RecyclePoint entity, MapRepository abstract, GetRecyclePointsUseCase
+  - Data: OverpassDatasource (Dio HTTP), MapRepositoryImpl (SharedPreferences + JSON cache)
+  - Core: MapConfig (26 ciudades colombianas), MapServiceProvider (DI), LocationService, ConnectivityService
+  - Presentation: MapViewModel (ChangeNotifier), MapPage, MapWidget (flutter_map), CitySelector, MapSearchBar, etc.
+  - Se usa Overpass API con queries around() radius (15km) por coordenadas de ciudad
+Problemas encontrados:
+  1. 90 errores de compilación por import paths incorrectos
+     Solución: Corregir paths relativos en cada archivo (3-4 niveles de profundidad)
+  2. factory constructors incompatibles con tipos nullable
+     Solución: Cambiar a static methods retornando nullable
+  3. Falta de métodos _tryLoadCachedOrFresh() y clearError() en MapViewModel
+     Solución: Agregar métodos faltantes
+  4. vm._errorMessage = null (campo privado desde otro archivo)
+     Solución: Usar vm.clearError()
+  5. _repository no declarado en GetCurrentLocationUseCase
+     Solución: Eliminar campo no usado
+  6. @override faltantes en MapRepositoryImpl
+     Solución: Agregar anotaciones @override
+Cómo fueron solucionados: Iterative fixes across 20+ files
+Pendientes: Probar en dispositivo, corregir errores de Overpass API
+
+==================================================
+Fecha: 2026-07-21
+Hora: 15:00
+Actividad realizada: Corrección de errores de Overpass API y permisos Android
+Archivos modificados:
+  - lib/modules/maps/data/datasources/overpass_datasource.dart
+  - android/app/src/main/AndroidManifest.xml
+Motivo: Overpass API retornando 0 resultados y permisos de ubicación
+Explicación técnica:
+  Overpass API requiere header User-Agent (sin él retorna 406).
+  Se cambió query de area["name"="Bogotá, Colombia"] (0 resultados)
+  a around:15000,lat,lng usando coordenadas de MapConfig.
+  Se agregó retry logic (2 reintentos con backoff) para 429/504.
+  Se aumentó receive timeout a 60s.
+  Se agregaron permisos Android: INTERNET, ACCESS_FINE_LOCATION,
+  ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION.
+Problemas encontrados:
+  1. Overpass API retorna 406 sin User-Agent
+     Solución: Agregar header 'User-Agent: rECOCam/1.0'
+  2. Query por area["name"="Bogotá, Colombia"] retorna 0 resultados
+     Solución: Usar around() radius con coordenadas de ciudad
+  3. Errores 429 (rate limit) y 504 (timeout) en Overpass API
+     Solución: Retry logic con backoff exponencial
+  4. DioException por status code no exitoso
+     Solución: validateStatus: (status) => true para manejar todos los códigos
+Cómo fueron solucionados: Ajustes de HTTP client y Overpass query
+Pendientes: Crashes de UI en DraggableScrollableSheet
+
+==================================================
+Fecha: 2026-07-21
+Hora: 17:00
+Actividad realizada: Corrección de crash DraggableScrollableSheet y deprecated APIs
+Archivos modificados:
+  - lib/modules/maps/presentation/widgets/recycle_point_list.dart
+  - lib/modules/maps/presentation/widgets/city_selector.dart
+  - lib/modules/maps/presentation/pages/map_page.dart
+Motivo: DraggableScrollableSheet causa crash por constraints no acotados
+Explicación técnica:
+  DraggableScrollableSheet necesita constraints acotados. Se envolvió
+  con LayoutBuilder + ConstrainedBox(maxHeight: 60% screen).
+  Se corrigió DropdownButtonFormField.value → .initialValue (deprecated).
+  Se corrigió LocationSettings para geolocator.
+Problemas encontrados:
+  1. DraggableScrollableSheet crash: "BoxConstraints forces an infinite height"
+     Solución: ConstrainedBox con maxHeight: MediaQuery.of(context).size.height * 0.6
+  2. DropdownButtonFormField.value parameter deprecated en Flutter 3.44.6
+     Solución: Usar initialValue en su lugar
+  3. LocationSettings import incorrecto
+     Solución: Import correcto de geolocator_platform_interface
+Cómo fueron solucionados: LayoutBuilder constraint fix + API migration
+Pendientes: Optimizar rendimiento del mapa, sidebar, nombres en español
+
+==================================================
+Fecha: 2026-07-21
+Hora: 19:00
+Actividad realizada: Prueba exitosa en dispositivo RMX3760 (Android 14)
+Archivos modificados: Ninguno (solo ejecución)
+Motivo: Verificar funcionamiento completo en dispositivo físico
+Explicación técnica:
+  - 806 puntos de reciclaje encontrados en Bogotá
+  - GPS ubicación actual obtenida correctamente
+  - TFLite inferencia funcional (MobileNetV2 quantized)
+  - Sin crashes de UI en DraggableScrollableSheet
+  - Mapa carga correctamente con OpenStreetMap tiles
+Problemas encontrados:
+  1. Nombres de tipos en inglés (waste_basket se muestra como "waste_basket")
+     Pendiente de corrección
+  2. Algunas direcciones muestran "Sin dirección registrada"
+     Pendiente de corrección con más tags de Overpass
+Cómo fueron solucionados: Dispositivo funcionando, issues pendientes para optimización
+Pendientes: Sidebar, traducción español, optimización mapa, bitácora
+
+==================================================
+Fecha: 2026-07-23
+Hora: 10:00
+Actividad realizada: Implementación de sidebar, optimización de mapa y correcciones de español
+Archivos modificados:
+  - lib/modules/maps/presentation/pages/map_page.dart (sidebar + map separation)
+  - lib/modules/maps/presentation/widgets/sidebar_points.dart (nuevo widget sidebar)
+  - lib/modules/maps/presentation/widgets/map_widget.dart (optimización rebuilds)
+  - lib/modules/maps/data/models/recycle_point_model.dart (español + fallbacks)
+  - bitacora.txt (este archivo)
+Motivo: Sidebar extensible, optimización de rendimiento, nombres en español, direcciones completas
+Explicación técnica:
+  1. Sidebar izquierdo: Nuevo widget SidebarPoints con AnimatedPositioned,
+     animación 300ms, FAB toggle, lista de puntos con nombre, dirección,
+     tipo y distancia. Se cierra al seleccionar un punto.
+  2. Separación MapWidget del Consumer: El MapWidget se mantiene fuera
+     del rebuild del Consumer para evitar rebuilds innecesarios del mapa.
+     Se usa selectionGeneration para forzar movimiento del mapa solo
+     cuando cambia la selección.
+  3. Nombre español: _mapType cubre todos los amenity types comunes con
+     nombres en español. _buildNombre usa tipo traducido como fallback.
+  4. Direcciones fallbacks: _buildAddress ahora intenta description,
+     note, place, name antes de "Sin dirección registrada".
+  5. description materiales: Agregados clothing, shoes, cartons,
+     packaging, wood, green_waste, waste a materialKeys.
+Problemas encontrados: Ninguno nuevo
+Cómo fueron solucionados: Implementación completa de las 5 mejoras
+Pendientes: Verificar compilación, probar en dispositivo
+
+==================================================

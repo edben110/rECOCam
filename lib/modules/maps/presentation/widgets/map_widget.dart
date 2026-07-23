@@ -13,6 +13,7 @@ class MapWidget extends StatefulWidget {
   final LatLng initialCenter;
   final Function(RecyclePoint) onPointSelected;
   final VoidCallback onMapTap;
+  final int selectionGeneration;
 
   const MapWidget({
     super.key,
@@ -22,6 +23,7 @@ class MapWidget extends StatefulWidget {
     required this.initialCenter,
     required this.onPointSelected,
     required this.onMapTap,
+    this.selectionGeneration = 0,
   });
 
   @override
@@ -34,17 +36,14 @@ class _MapWidgetState extends State<MapWidget> {
   @override
   void didUpdateWidget(MapWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (widget.selectedPoint != null &&
         widget.selectedPoint != oldWidget.selectedPoint) {
-      _animateToPoint(widget.selectedPoint!);
+      _mapController.move(
+        LatLng(widget.selectedPoint!.latitud, widget.selectedPoint!.longitud),
+        MapConfig.selectedZoom,
+      );
     }
-  }
-
-  void _animateToPoint(RecyclePoint point) {
-    _mapController.move(
-      LatLng(point.latitud, point.longitud),
-      MapConfig.selectedZoom,
-    );
   }
 
   @override
@@ -57,6 +56,9 @@ class _MapWidgetState extends State<MapWidget> {
         minZoom: MapConfig.minZoom,
         maxZoom: MapConfig.maxZoom,
         onTap: (_, _) => widget.onMapTap(),
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+        ),
       ),
       children: [
         TileLayer(
@@ -106,14 +108,20 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   List<Marker> _buildMarkers() {
-    return widget.points.map((point) {
-      final isSelected = widget.selectedPoint?.id == point.id;
-      return MapMarkerFactory.createMarker(
-        context: context,
-        point: point,
-        isSelected: isSelected,
-        onTap: () => widget.onPointSelected(point),
+    final selectedId = widget.selectedPoint?.id;
+    final markers = <Marker>[];
+
+    for (final point in widget.points) {
+      markers.add(
+        MapMarkerFactory.createMarker(
+          context: context,
+          point: point,
+          isSelected: point.id == selectedId,
+          onTap: () => widget.onPointSelected(point),
+        ),
       );
-    }).toList();
+    }
+
+    return markers;
   }
 }

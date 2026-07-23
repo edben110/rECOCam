@@ -6,8 +6,9 @@ import '../../domain/entities/recycle_point.dart';
 
 class RecyclePointCard extends StatelessWidget {
   final RecyclePoint point;
+  final VoidCallback? onClose;
 
-  const RecyclePointCard({super.key, required this.point});
+  const RecyclePointCard({super.key, required this.point, this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +65,13 @@ class RecyclePointCard extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.close, size: 20),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  if (onClose != null) {
+                    onClose!();
+                  } else {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
             ],
           ),

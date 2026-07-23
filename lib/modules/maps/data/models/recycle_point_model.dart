@@ -30,9 +30,7 @@ class RecyclePointModel extends RecyclePoint {
       if (lat == null || lon == null) return null;
 
       final id = element['id']?.toString() ?? const Uuid().v4();
-      final nombre = tags['name'] ??
-          tags['operator'] ??
-          _capitalizeType(tags['amenity'] ?? 'Punto de reciclaje');
+      final nombre = _buildNombre(tags);
       final direccion = _buildAddress(tags);
       final tipo = _mapType(tags['amenity'] ?? '');
       final descripcion = _buildDescription(tags);
@@ -104,18 +102,47 @@ class RecyclePointModel extends RecyclePoint {
     };
   }
 
+  static String _buildNombre(Map<String, dynamic> tags) {
+    final rawName = tags['name'] ?? tags['operator'] ?? '';
+    if (rawName.isNotEmpty) return rawName;
+
+    final amenity = tags['amenity'] ?? '';
+    return _mapType(amenity).isNotEmpty
+        ? _mapType(amenity)
+        : 'Punto de reciclaje';
+  }
+
   static String _buildAddress(Map<String, dynamic> tags) {
     final parts = <String>[];
+
     final street = tags['addr:street'] ?? '';
     final number = tags['addr:housenumber'] ?? '';
     if (street.isNotEmpty) {
       parts.add(number.isNotEmpty ? '$street $number' : street);
     }
-    final suburb = tags['addr:suburb'] ?? tags['addr:neighbourhood'] ?? '';
+
+    final suburb =
+        tags['addr:suburb'] ?? tags['addr:neighbourhood'] ?? '';
     if (suburb.isNotEmpty) parts.add(suburb);
+
     final city = tags['addr:city'] ?? '';
     if (city.isNotEmpty) parts.add(city);
-    return parts.isNotEmpty ? parts.join(', ') : 'Sin dirección registrada';
+
+    if (parts.isNotEmpty) return parts.join(', ');
+
+    final description = tags['description'] ?? '';
+    if (description.isNotEmpty) return description;
+
+    final note = tags['note'] ?? '';
+    if (note.isNotEmpty) return note;
+
+    final place = tags['place'] ?? '';
+    if (place.isNotEmpty) return place;
+
+    final name = tags['name'] ?? '';
+    if (name.isNotEmpty) return name;
+
+    return 'Sin dirección registrada';
   }
 
   static String _mapType(String amenity) {
@@ -130,17 +157,19 @@ class RecyclePointModel extends RecyclePoint {
         return 'Punto de disposición';
       case 'waste_basket':
         return 'Cesta de basura';
+      case 'waste_transfer_station':
+        return 'Estación de transferencia';
+      case 'waste_disposal_site':
+        return 'Sitio de disposición';
+      case 'composting':
+        return 'Compostaje';
+      case 'trash':
+        return 'Basurero';
+      case 'garbage':
+        return 'Basurero';
       default:
         return 'Punto de reciclaje';
     }
-  }
-
-  static String _capitalizeType(String text) {
-    if (text.isEmpty) return text;
-    return text.split('_').map((w) {
-      if (w.isEmpty) return w;
-      return w[0].toUpperCase() + w.substring(1);
-    }).join(' ');
   }
 
   static String _buildDescription(Map<String, dynamic> tags) {
@@ -154,6 +183,13 @@ class RecyclePointModel extends RecyclePoint {
       'recycling:textile': 'Textil',
       'recycling:e-waste': 'Electrónicos',
       'recycling:batteries': 'Baterías',
+      'recycling:clothing': 'Ropa',
+      'recycling:shoes': 'Calzado',
+      'recycling:cartons': 'Cartón',
+      'recycling:packaging': 'Empaques',
+      'recycling:wood': 'Madera',
+      'recycling:green_waste': 'Jardín',
+      'recycling:waste': 'Residuos generales',
     };
 
     for (final entry in materialKeys.entries) {
