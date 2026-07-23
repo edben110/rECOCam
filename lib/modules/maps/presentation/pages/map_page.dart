@@ -7,7 +7,6 @@ import '../widgets/map_widget.dart';
 import '../widgets/city_selector.dart';
 import '../widgets/sidebar_points.dart';
 import '../widgets/recycle_point_card.dart';
-import '../widgets/map_search_bar.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -43,12 +42,26 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Puntos de Reciclaje'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: _toggleSidebar,
+            tooltip: 'Lista de puntos',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<MapViewModel>().refresh(),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           Column(
             children: [
-              _buildAppBar(),
-              _buildControls(),
+              _buildCitySelector(),
               Expanded(
                 child: _buildMapArea(),
               ),
@@ -63,39 +76,12 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildAppBar() {
-    final vm = context.read<MapViewModel>();
-    return AppBar(
-      title: const Text('Puntos de Reciclaje'),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          onPressed: () => vm.refresh(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildControls() {
+  Widget _buildCitySelector() {
     return Consumer<MapViewModel>(
       builder: (context, vm, _) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CitySelector(
-              selectedCity: vm.selectedCity,
-              selectedLocality: vm.selectedLocality,
-              availableLocalities: vm.availableLocalities,
-              onCityChanged: vm.selectCity,
-              onLocalityChanged: vm.selectLocality,
-            ),
-            MapSearchBar(
-              onSearch: vm.search,
-              onFilterChanged: vm.setTipoFilter,
-              currentFilter: vm.tipoFilter,
-            ),
-          ],
+        return CitySelector(
+          selectedCity: vm.selectedCity,
+          onCityChanged: vm.selectCity,
         );
       },
     );
@@ -126,9 +112,17 @@ class _MapPageState extends State<MapPage> {
       builder: (context, vm, _) {
         return SidebarPoints(
           points: vm.filteredPoints,
+          allPointsCount: vm.points.length,
+          selectedLocality: vm.selectedLocality,
+          availableLocalities: vm.availableLocalities,
+          tipoFilter: vm.tipoFilter,
+          searchQuery: vm.searchQuery,
           onPointSelected: (point) => _onPointSelected(vm, point),
           isVisible: _sidebarOpen,
           onToggle: _toggleSidebar,
+          onLocalityChanged: vm.selectLocality,
+          onTipoFilterChanged: vm.setTipoFilter,
+          onSearchChanged: vm.search,
         );
       },
     );

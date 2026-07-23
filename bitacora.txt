@@ -540,3 +540,56 @@ Cómo fueron solucionados: Implementación completa de las 5 mejoras
 Pendientes: Verificar compilación, probar en dispositivo
 
 ==================================================
+Fecha: 2026-07-23
+Hora: 14:00
+Actividad realizada: Bottom navigation bar, corrección de bug de filtro, reorganización de UI
+Archivos modificados:
+  - lib/presentation/pages/main_shell.dart (nuevo: shell con NavigationBar)
+  - lib/presentation/pages/home/home_page.dart (eliminado botón de mapa)
+  - lib/main.dart (home: MainShell en vez de HomePage)
+  - lib/modules/maps/presentation/pages/map_page.dart (sin Scaffold propio, sidebar con filtros)
+  - lib/modules/maps/presentation/viewmodels/map_viewmodel.dart (filtro localidad client-side)
+  - lib/modules/maps/presentation/widgets/sidebar_points.dart (sidebar con búsqueda + filtros)
+  - lib/modules/maps/presentation/widgets/city_selector.dart (solo ciudad, sin localidad)
+  - bitacora.txt (este archivo)
+Motivo: Navegación por tabs, bug de filtro de localidades, reorganización de sidebar
+Explicación técnica:
+  1. Bottom NavigationBar: Nuevo widget MainShell con NavigationBar de 2 tabs
+     (Cámara y Mapa). Usa IndexedStack para mantener estado de ambas páginas.
+     Cada página ahora es un tab, no una ruta separada.
+  2. Bug filtro localidades (MÁXIMA PRIORIDAD):
+     CAUSA RAÍZ: selectLocality() llamaba loadPoints() que re-queryeaba la API
+     de Overpass. El parámetro localidad NO se usa en la query de Overpass
+     (la query es un around() radius por coordenadas de ciudad). El filtro
+     de localidad siempre fue client-side, pero selectLocality() forzaba
+     una nueva petición HTTP innecesaria. Cuando Overpass fallaba (429 rate
+     limit, 504 timeout), la caché estaba vacía o desactualizada, causando
+     marcadores rojos sin interacción.
+     SOLUCIÓN: selectLocality() ahora solo filtra client-side (_applyFilters)
+     SIN llamar loadPoints(). Solo selectCity() llama loadPoints() para
+     obtener nuevos datos de Overpass. El error de conexión ahora intenta
+     cache primero antes de mostrar error.
+  3. Sidebar reorganizada: Búsqueda, dropdown de localidad y chips de filtro
+     de tipo ahora están dentro de la sidebar izquierda. El header muestra
+     "X de Y puntos" para indicar filtrado.
+  4. CitySelector simplificado: Solo muestra dropdown de ciudad (la localidad
+     se movió a la sidebar).
+  5. Recibe todas las dependencias por constructor (DI).
+  6. Eliminado MapSearchBar como widget independiente (integrado en sidebar).
+Problemas encontrados:
+  1. Botón X en RecyclePointCard cerraba toda la ruta (Navigator.pop)
+     en vez de solo cerrar la tarjeta
+     Solución: Agregado callback onClose que llama vm.clearSelection()
+  2. Botón "Buscar puntos de reciclaje" en HomePage usaba Navigator.push
+     Creaba una ruta separada. Con el bottom nav, se eliminó el botón.
+     Solución: Navegación ahora es por tab en MainShell
+  3. selectLocality() re-queryeaba Overpass innecesariamente
+     Causaba 429/504 timeouts y datos vacíos → marcadores rojos
+     Solución: Filtrado client-side solamente, sin llamada HTTP
+  4. OverpassDatasource localidad param no se usaba en query
+     El parámetro existía pero _buildQuery lo ignoraba
+     Solución: Aceptado como design, el filtrado es client-side
+Cómo fueron solucionados: Refactorización de navegación y lógica de filtrado
+Pendientes: Verificar en dispositivo que el filtro funciona correctamente
+
+==================================================

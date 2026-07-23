@@ -30,8 +30,8 @@ class MapViewModel extends ChangeNotifier {
   MapState _state = MapState.initial;
   MapState get state => _state;
 
-  List<RecyclePoint> _points = [];
-  List<RecyclePoint> get points => _points;
+  List<RecyclePoint> _allPoints = [];
+  List<RecyclePoint> get points => _allPoints;
 
   List<RecyclePoint> _filteredPoints = [];
   List<RecyclePoint> get filteredPoints => _filteredPoints;
@@ -60,7 +60,12 @@ class MapViewModel extends ChangeNotifier {
   final List<String> _availableLocalities = [];
   List<String> get availableLocalities => _availableLocalities;
 
+  bool _initialized = false;
+
   Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
     await _repository.loadLastCity();
     await _repository.loadLastLocality();
     await _repository.loadLastUpdate();
@@ -88,9 +93,9 @@ class MapViewModel extends ChangeNotifier {
     if (cacheValid) {
       final cached = await _repository.getCachedPoints(_selectedCity!);
       if (cached.isNotEmpty) {
-        _points = cached;
-        _applyFilters();
+        _allPoints = cached;
         _extractLocalities();
+        _applyFilters();
         _state = MapState.loaded;
         notifyListeners();
         return;
@@ -116,18 +121,20 @@ class MapViewModel extends ChangeNotifier {
   Future<void> selectCity(String city) async {
     _selectedCity = city;
     _selectedLocality = null;
+    _selectedPoint = null;
     await _repository.saveLastCity(city);
     notifyListeners();
     await loadPoints();
   }
 
-  Future<void> selectLocality(String? locality) async {
+  void selectLocality(String? locality) {
     _selectedLocality = locality;
     if (locality != null) {
-      await _repository.saveLastLocality(locality);
+      _repository.saveLastLocality(locality);
     }
+    _selectedPoint = null;
+    _applyFilters();
     notifyListeners();
-    await loadPoints();
   }
 
   Future<void> loadPoints() async {
@@ -141,10 +148,10 @@ class MapViewModel extends ChangeNotifier {
       final isConnected = await _connectivityService.isConnected;
       if (!isConnected) {
         final cached = await _repository.getCachedPoints(_selectedCity!);
-        _points = cached;
-        _applyFilters();
+        _allPoints = cached;
         _extractLocalities();
-        _state = _points.isEmpty ? MapState.empty : MapState.loaded;
+        _applyFilters();
+        _state = _allPoints.isEmpty ? MapState.empty : MapState.loaded;
         _errorMessage = 'Sin conexión. Mostrando datos cacheados.';
         notifyListeners();
         return;
@@ -152,25 +159,33 @@ class MapViewModel extends ChangeNotifier {
 
       final newPoints = await _getRecyclePointsUseCase(
         ciudad: _selectedCity!,
-        localidad: _selectedLocality,
-        tipo: _tipoFilter,
         latitud: _currentLocation?.latitude,
         longitud: _currentLocation?.longitude,
       );
 
-      _points = newPoints;
-      _applyFilters();
+      _allPoints = newPoints;
       _extractLocalities();
 
-      await _repository.cachePoints(_points, _selectedCity!);
+      await _repository.cachePoints(_allPoints, _selectedCity!);
       await _repository.saveLastUpdate(DateTime.now());
 
-      _state = _points.isEmpty ? MapState.empty : MapState.loaded;
+      _applyFilters();
+
+      _state = _allPoints.isEmpty ? MapState.empty : MapState.loaded;
       notifyListeners();
     } catch (e) {
       LoggerService.instance.error('Error cargando puntos', e);
-      _state = MapState.error;
-      _errorMessage = 'Error al cargar los datos. Intente de nuevo.';
+      final cached = await _repository.getCachedPoints(_selectedCity!);
+      if (cached.isNotEmpty) {
+        _allPoints = cached;
+        _extractLocalities();
+        _applyFilters();
+        _state = MapState.loaded;
+        _errorMessage = 'Error de conexión. Mostrando datos cacheados.';
+      } else {
+        _state = MapState.error;
+        _errorMessage = 'Error al cargar los datos. Intente de nuevo.';
+      }
       notifyListeners();
     }
   }
@@ -185,7 +200,6 @@ class MapViewModel extends ChangeNotifier {
     _tipoFilter = tipo;
     _applyFilters();
     notifyListeners();
-    loadPoints();
   }
 
   void selectPoint(RecyclePoint? point) {
@@ -219,7 +233,7 @@ class MapViewModel extends ChangeNotifier {
   }
 
   void _applyFilters() {
-    var result = List<RecyclePoint>.from(_points);
+    var result = List<RecyclePoint>.from(_allPoints);
 
     if (_searchQuery.isNotEmpty) {
       result = result.where((p) {
@@ -228,6 +242,10 @@ class MapViewModel extends ChangeNotifier {
             p.tipo.toLowerCase().contains(_searchQuery) ||
             p.descripcion.toLowerCase().contains(_searchQuery);
       }).toList();
+    }
+
+    if (_selectedLocality != null && _selectedLocality!.isNotEmpty) {
+      result = result.where((p) => p.localidad == _selectedLocality).toList();
     }
 
     if (_tipoFilter != null && _tipoFilter!.isNotEmpty) {
@@ -239,7 +257,7 @@ class MapViewModel extends ChangeNotifier {
 
   void _extractLocalities() {
     _availableLocalities.clear();
-    final localities = _points
+    final localities = _allPoints
         .map((p) => p.localidad)
         .where((l) => l.isNotEmpty)
         .toSet()

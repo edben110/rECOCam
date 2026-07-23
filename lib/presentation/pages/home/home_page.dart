@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../routes/app_router.dart';
 import '../../viewmodels/recycle_viewmodel.dart';
 import '../../widgets/camera_preview_widget.dart';
 import '../../widgets/analysis_result_widget.dart';
@@ -179,21 +178,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   : null,
               icon: const Icon(Icons.photo_library),
               label: const Text('Seleccionar de galería'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 56),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pushNamed(context, AppRouter.map);
-              },
-              icon: const Icon(Icons.map),
-              label: const Text('Buscar puntos de reciclaje'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 56),
                 textStyle: const TextStyle(

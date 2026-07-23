@@ -2,38 +2,74 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/recycle_point.dart';
 
-class SidebarPoints extends StatelessWidget {
+class SidebarPoints extends StatefulWidget {
   final List<RecyclePoint> points;
+  final int allPointsCount;
+  final String? selectedLocality;
+  final List<String> availableLocalities;
+  final String? tipoFilter;
+  final String searchQuery;
   final Function(RecyclePoint) onPointSelected;
   final bool isVisible;
   final VoidCallback onToggle;
+  final Function(String?) onLocalityChanged;
+  final Function(String?) onTipoFilterChanged;
+  final Function(String) onSearchChanged;
 
   const SidebarPoints({
     super.key,
     required this.points,
+    required this.allPointsCount,
+    this.selectedLocality,
+    this.availableLocalities = const [],
+    this.tipoFilter,
+    this.searchQuery = '',
     required this.onPointSelected,
     required this.isVisible,
     required this.onToggle,
+    required this.onLocalityChanged,
+    required this.onTipoFilterChanged,
+    required this.onSearchChanged,
   });
+
+  @override
+  State<SidebarPoints> createState() => _SidebarPointsState();
+}
+
+class _SidebarPointsState extends State<SidebarPoints> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void didUpdateWidget(SidebarPoints oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery &&
+        widget.searchQuery != _searchController.text) {
+      _searchController.text = widget.searchQuery;
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final sidebarWidth = (screenWidth * 0.55).clamp(260.0, 420.0);
+    final sidebarWidth = (screenWidth * 0.62).clamp(280.0, 440.0);
 
     return Stack(
       children: [
-        if (isVisible)
+        if (widget.isVisible)
           GestureDetector(
-            onTap: onToggle,
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.25),
-            ),
+            onTap: widget.onToggle,
+            child: Container(color: Colors.black.withValues(alpha: 0.25)),
           ),
         AnimatedPositioned(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          left: isVisible ? 0 : -sidebarWidth - 8,
+          left: widget.isVisible ? 0 : -sidebarWidth - 8,
           top: 0,
           bottom: 0,
           width: sidebarWidth,
@@ -48,33 +84,15 @@ class SidebarPoints extends StatelessWidget {
                   children: [
                     _buildHeader(context),
                     const Divider(height: 1),
+                    _buildSearchBar(context),
+                    _buildFilterSection(context),
+                    const Divider(height: 1),
                     Expanded(
-                      child: points.isEmpty
+                      child: widget.points.isEmpty
                           ? _buildEmptyState(context)
                           : _buildPointsList(context),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          left: isVisible ? sidebarWidth : 0,
-          top: MediaQuery.of(context).padding.top + 8,
-          child: AnimatedSlide(
-            offset: isVisible ? const Offset(0, 0) : Offset.zero,
-            duration: const Duration(milliseconds: 200),
-            child: FloatingActionButton.small(
-              heroTag: 'sidebar_toggle',
-              onPressed: onToggle,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  isVisible ? Icons.close : Icons.menu,
-                  key: ValueKey(isVisible),
-                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -87,7 +105,7 @@ class SidebarPoints extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: Theme.of(context).colorScheme.primaryContainer,
       child: Row(
         children: [
@@ -110,7 +128,7 @@ class SidebarPoints extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${points.length} registrado${points.length == 1 ? '' : 's'}',
+                  '${widget.points.length} de ${widget.allPointsCount} punto${widget.allPointsCount == 1 ? '' : 's'}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -118,7 +136,122 @@ class SidebarPoints extends StatelessWidget {
               ],
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20),
+            onPressed: widget.onToggle,
+            tooltip: 'Cerrar',
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Buscar por nombre o dirección...',
+          border: const OutlineInputBorder(),
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          prefixIcon: const Icon(Icons.search, size: 18),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, size: 16),
+                  onPressed: () {
+                    _searchController.clear();
+                    widget.onSearchChanged('');
+                  },
+                )
+              : null,
+        ),
+        onChanged: widget.onSearchChanged,
+      ),
+    );
+  }
+
+  Widget _buildFilterSection(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildLocalityDropdown(context),
+        _buildTypeFilterChips(context),
+      ],
+    );
+  }
+
+  Widget _buildLocalityDropdown(BuildContext context) {
+    if (widget.availableLocalities.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+        child: DropdownButtonFormField<String>(
+        initialValue: widget.selectedLocality,
+        isExpanded: true,
+        isDense: true,
+        decoration: const InputDecoration(
+          labelText: 'Localidad',
+          border: OutlineInputBorder(),
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          prefixIcon: Icon(Icons.map, size: 18),
+        ),
+        items: [
+          const DropdownMenuItem(
+            value: null,
+            child: Text('Todas', style: TextStyle(fontSize: 13)),
+          ),
+          ...widget.availableLocalities.map((locality) {
+            return DropdownMenuItem(
+              value: locality,
+              child: Text(
+                locality,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13),
+              ),
+            );
+          }),
+        ],
+        onChanged: widget.onLocalityChanged,
+      ),
+    );
+  }
+
+  Widget _buildTypeFilterChips(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        children: [
+          _buildFilterChip(context, 'Todos', null),
+          _buildFilterChip(context, 'Reciclaje', 'Centro de reciclaje'),
+          _buildFilterChip(context, 'Acopio', 'Centro de acopio'),
+          _buildFilterChip(context, 'Contenedor', 'Contenedor de reciclaje'),
+          _buildFilterChip(context, 'Disposición', 'Punto de disposición'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(BuildContext context, String label, String? value) {
+    final isSelected = widget.tipoFilter == value;
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: FilterChip(
+        label: Text(label, style: const TextStyle(fontSize: 11)),
+        selected: isSelected,
+        onSelected: (_) => widget.onTipoFilterChanged(value),
+        visualDensity: VisualDensity.compact,
+        selectedColor: primary.withValues(alpha: 0.15),
+        checkmarkColor: primary,
       ),
     );
   }
@@ -154,10 +287,10 @@ class SidebarPoints extends StatelessWidget {
 
   Widget _buildPointsList(BuildContext context) {
     return ListView.builder(
-      itemCount: points.length,
+      itemCount: widget.points.length,
       padding: const EdgeInsets.symmetric(vertical: 4),
       itemBuilder: (context, index) {
-        final point = points[index];
+        final point = widget.points[index];
         return _buildPointItem(context, point);
       },
     );
@@ -169,7 +302,7 @@ class SidebarPoints extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => onPointSelected(point),
+        onTap: () => widget.onPointSelected(point),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
@@ -250,11 +383,7 @@ class SidebarPoints extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
-                size: 20,
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
             ],
           ),
         ),

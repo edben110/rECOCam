@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/config/app_config.dart';
 import 'core/services/logger_service.dart';
 import 'core/services/service_provider.dart';
-import 'presentation/pages/home/home_page.dart';
+import 'presentation/pages/main_shell.dart';
 import 'presentation/routes/app_router.dart';
 import 'presentation/viewmodels/recycle_viewmodel.dart';
 import 'modules/maps/core/di/map_service_provider.dart';
@@ -59,7 +59,7 @@ class RecoCamApp extends StatelessWidget {
         darkTheme: _buildDarkTheme(),
         themeMode: ThemeMode.system,
         onGenerateRoute: AppRouter.generateRoute,
-        home: const HomePage(),
+        home: const MainShell(),
       ),
     );
   }
