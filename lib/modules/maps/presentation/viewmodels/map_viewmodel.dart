@@ -249,7 +249,13 @@ class MapViewModel extends ChangeNotifier {
     }
 
     if (_tipoFilter != null && _tipoFilter!.isNotEmpty) {
-      result = result.where((p) => p.tipo == _tipoFilter).toList();
+      if (_tipoFilter == 'contenedor_cesta') {
+        result = result.where((p) =>
+            p.tipo == 'Contenedor de reciclaje' ||
+            p.tipo == 'Cesta de basura').toList();
+      } else {
+        result = result.where((p) => p.tipo == _tipoFilter).toList();
+      }
     }
 
     _filteredPoints = result;

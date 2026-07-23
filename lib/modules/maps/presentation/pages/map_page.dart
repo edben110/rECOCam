@@ -47,11 +47,6 @@ class _MapPageState extends State<MapPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: _toggleSidebar,
-            tooltip: 'Lista de puntos',
-          ),
-          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<MapViewModel>().refresh(),
           ),
@@ -66,6 +61,20 @@ class _MapPageState extends State<MapPage> {
                 child: _buildMapArea(),
               ),
             ],
+          ),
+          Positioned(
+            top: 8,
+            left: 8,
+            child: FloatingActionButton.small(
+              heroTag: 'sidebar_hamburger',
+              onPressed: _toggleSidebar,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              elevation: 4,
+              child: Icon(
+                _sidebarOpen ? Icons.close : Icons.menu,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
           _buildSidebar(),
           _buildFloatingCard(),

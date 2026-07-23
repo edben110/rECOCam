@@ -231,8 +231,7 @@ class _SidebarPointsState extends State<SidebarPoints> {
         children: [
           _buildFilterChip(context, 'Todos', null),
           _buildFilterChip(context, 'Reciclaje', 'Centro de reciclaje'),
-          _buildFilterChip(context, 'Acopio', 'Centro de acopio'),
-          _buildFilterChip(context, 'Contenedor', 'Contenedor de reciclaje'),
+          _buildFilterChip(context, 'Contenedores y cestos', 'contenedor_cesta'),
           _buildFilterChip(context, 'Disposición', 'Punto de disposición'),
         ],
       ),
