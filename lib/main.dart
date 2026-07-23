@@ -7,6 +7,8 @@ import 'core/services/service_provider.dart';
 import 'presentation/pages/home/home_page.dart';
 import 'presentation/routes/app_router.dart';
 import 'presentation/viewmodels/recycle_viewmodel.dart';
+import 'modules/maps/core/di/map_service_provider.dart';
+import 'modules/maps/presentation/viewmodels/map_viewmodel.dart';
 
 /// Punto de entrada de la aplicación rECOCam.
 void main() async {
@@ -19,6 +21,7 @@ void main() async {
 
   // Inicializar contenedor de dependencias
   ServiceProvider.instance.initialize();
+  MapServiceProvider.instance.initialize();
 
   runApp(const RecoCamApp());
 }
@@ -30,6 +33,7 @@ class RecoCamApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sp = ServiceProvider.instance;
+    final msp = MapServiceProvider.instance;
 
     return MultiProvider(
       providers: [
@@ -38,6 +42,14 @@ class RecoCamApp extends StatelessWidget {
             cameraService: sp.cameraService,
             repository: sp.repository,
           )..initialize(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MapViewModel(
+            getRecyclePointsUseCase: msp.getRecyclePointsUseCase,
+            locationService: msp.locationService,
+            connectivityService: msp.connectivityService,
+            repository: msp.mapRepository,
+          ),
         ),
       ],
       child: MaterialApp(
