@@ -593,3 +593,92 @@ Cómo fueron solucionados: Refactorización de navegación y lógica de filtrado
 Pendientes: Verificar en dispositivo que el filtro funciona correctamente
 
 ==================================================
+Fecha: 2026-07-23
+Hora: 14:30
+Actividad realizada: Corrección botón X de RecyclePointCard
+Archivos modificados:
+  - lib/modules/maps/presentation/widgets/recycle_point_card.dart (callback onClose)
+  - lib/modules/maps/presentation/pages/map_page.dart (pasa onClose)
+Motivo: Botón X de la tarjeta de ubicación cerraba toda la página en vez de solo la tarjeta
+Explicación técnica:
+  RecyclePointCard usaba Navigator.of(context).pop() en el botón X.
+  Como la tarjeta se muestra dentro de un Stack (no como ruta separada),
+  pop() navegaba hacia atrás a la página principal de la app.
+  Se agregó parámetro opcional onClose (VoidCallback?) y se cambió
+  onPressed para llamar onClose si existe, o Navigator.pop como fallback.
+  map_page.dart ahora pasa onClose: () => vm.clearSelection().
+Problemas encontrados:
+  1. Navigator.of(context).pop() en widget dentro de Stack
+     Causaba navegación inesperada fuera de la página de mapas
+     Solución: Callback onClose que llama clearSelection() del ViewModel
+Cómo fueron solucionados: Agregado parámetro onClose como patrón callback
+Pendientes: Mover hamburguesa, ajustar filtros
+
+==================================================
+Fecha: 2026-07-23
+Hora: 15:00
+Actividad realizada: Reposición hamburguesa, eliminación filtro Acopio, unión Contenedor+Cestos
+Archivos modificados:
+  - lib/modules/maps/presentation/pages/map_page.dart (hamburguesa en Positioned)
+  - lib/modules/maps/presentation/widgets/sidebar_points.dart (chips de filtro)
+  - lib/modules/maps/presentation/viewmodels/map_viewmodel.dart (_applyFilters compuesto)
+Motivo: Hamburguesa mal ubicada, filtro Acopio innecesario, contenedor no incluía cestos
+Explicación técnica:
+  1. Hamburguesa reposicionada: Se movió de AppBar.actions a Positioned
+     (top: 8, left: 8) sobre el mapa como FloatingActionButton.small.
+     Se eliminó el IconButton del AppBar.
+  2. Filtro Acopio eliminado: Se removió el chip "Acopio" (Centro de acopio)
+     de los filtros en la sidebar. Chips restantes: Todos, Reciclaje,
+     Contenedores y cestos, Disposición.
+  3. Filtro compuesto contenedor_cesta: Nuevo valor 'contenedor_cesta' en
+     el chip "Contenedores y cestos". En _applyFilters() del ViewModel,
+     cuando tipoFilter == 'contenedor_cesta', filtra puntos cuyo tipo sea
+     'Contenedor de reciclaje' O 'Cesta de basura'. La query de Overpass
+     siempre trae todos los tipos (sin filtro server-side), así que ambos
+     están disponibles para filtrado client-side.
+Problemas encontrados:
+  1. No se podían mostrar cestos de basura con el filtro de contenedor
+     El chip solo filtraba 'Contenedor de reciclaje'
+     Solución: Valor compuesto 'contenedor_cesta' + lógica OR en _applyFilters
+  2. Filtro Acopio mostraba pocos resultados en Bogotá
+     Solución: Eliminado del UI (los puntos de acopio siguen cargándose,
+     solo no tienen chip de filtro dedicado)
+Cómo fueron solucionados: Ajuste de UI y lógica de filtrado compuesto
+Pendientes: Ajustar overflow de card, reposicionar hamburguesa en AppBar
+
+==================================================
+Fecha: 2026-07-23
+Hora: 16:00
+Actividad realizada: Corrección overflow card, hamburguesa en AppBar.leading, eliminación "Cómo llegar"
+Archivos modificados:
+  - lib/modules/maps/presentation/widgets/recycle_point_card.dart (overflow fix, sin "Cómo llegar")
+  - lib/modules/maps/presentation/pages/map_page.dart (hamburguesa en AppBar.leading)
+Motivo: Overflow de 5.6 pixels en card de ubicación, hamburguesa mal posicionada, botón innecesario
+Explicación técnica:
+  1. Overflow card (5.6 pixels): La tarjetaRecyclePointCard usaba Column
+     sin scroll, y el contenido (header + detalles + acciones) excedía
+     la ConstraintBox maxHeight (45% screen). Solución: Detalles envueltos
+     en Flexible > SingleChildScrollView para permitir scroll. Header
+     compactado: nombre + tipo + botón X en una sola fila Row. Padding
+     reducido (16→12-14 vertical). Font sizes reducidos (13→12).
+     Label width reducido de 80→70.
+  2. Hamburguesa reposicionada: Se movió de Positioned(top:8, left:8)
+     sobre el mapa a AppBar.leading como IconButton. Ahora aparece como
+     el primer elemento del AppBar, a la izquierda del título.
+  3. Botón "Cómo llegar" eliminado: Se removió el botón ElevatedButton de
+     navegación y el método _openNavigation(). Se eliminaron imports de
+     url_launcher y flutter/services.dart (ya no se usaban). Solo queda
+     "Copiar dirección" como acción única (botón completo width).
+Problemas encontrados:
+  1. Overflow en RecyclePointCard: "bottom overflowed by 5.6 pixels"
+     Causa: Column con mainAxisSize.min sin scroll, contenido excedía
+     ConstraintBox maxHeight
+     Solución: Flexible + SingleChildScrollView en la sección de detalles
+  2. Hamburguesa sobre el mapa tapaba contenido del mapa
+     Solución: Movida al AppBar.leading donde no interfiere con el mapa
+  3. Botón "Cómo llegar" ocupaba espacio innecesario
+     Solución: Eliminado completamente, solo queda copiar dirección
+Cómo fueron solucionados: Scrollable card + reposición de AppBar + limpieza de UI
+Pendientes: Verificar en dispositivo
+
+==================================================

@@ -43,14 +43,14 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(_sidebarOpen ? Icons.close : Icons.menu),
+          onPressed: _toggleSidebar,
+          tooltip: 'Lista de puntos',
+        ),
         title: const Text('Puntos de Reciclaje'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: _toggleSidebar,
-            tooltip: 'Lista de puntos',
-          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<MapViewModel>().refresh(),
